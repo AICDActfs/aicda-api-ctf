@@ -103,7 +103,7 @@ export default function LabsPage() {
               {solvedFlags.length * 100} / 1000 PTS
             </span>
           </div>
-          <ProgressBar current={solvedFlags.length} total={10} />
+          <ProgressBar solvedCount={solvedFlags.length} total={10} />
         </div>
 
         {/* All Solved Banner (with dismissible view so you can still browse labs) */}
