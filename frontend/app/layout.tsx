@@ -3,8 +3,36 @@ import Image from "next/image";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://aicda-api-ctf.vercel.app'),
   title: "AICDA API CTF",
   description: "AICDA - Anonymous India Cyber Defence Academy | API Security Training Lab",
+  icons: {
+    icon: "/logo.jpg",
+    shortcut: "/logo.jpg",
+    apple: "/logo.jpg",
+  },
+  openGraph: {
+    title: "AICDA API CTF — Anonymous India Cyber Defence Academy",
+    description: "API Security Training Lab // Knowledge is Free",
+    url: "https://aicda-api-ctf.vercel.app",
+    siteName: "AICDA CTF",
+    images: [
+      {
+        url: "/logo.jpg",
+        width: 800,
+        height: 800,
+        alt: "AICDA Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AICDA API CTF",
+    description: "API Security Training Lab // Knowledge is Free",
+    images: ["/logo.jpg"],
+  },
 };
 
 export default function RootLayout({
