@@ -3,7 +3,7 @@ import Image from "next/image";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://aicda-api-ctf.vercel.app'),
+  metadataBase: new URL('https://aicda-ctfs-api.vercel.app'),
   title: "AICDA API CTF",
   description: "AICDA - Anonymous India Cyber Defence Academy | API Security Training Lab",
   icons: {
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "AICDA API CTF — Anonymous India Cyber Defence Academy",
     description: "API Security Training Lab // Knowledge is Free",
-    url: "https://aicda-api-ctf.vercel.app",
+    url: "https://aicda-ctfs-api.vercel.app",
     siteName: "AICDA CTF",
     images: [
       {
