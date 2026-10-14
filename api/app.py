@@ -231,5 +231,30 @@ def list_users():
         
     return jsonify(res)
 
+
+@app.route('/api/v1/users/lookup', methods=['POST'])
+def lookup_user_sqli():
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    user_data = verify_token(token)
+    if not user_data:
+        return jsonify({"error": "Invalid token"}), 401
+    
+    data = request.get_json() or {}
+    username = data.get('username', '')
+    
+    conn = get_db()
+    c = conn.cursor()
+    # Vulnerable raw SQL concatenation
+    query = f"SELECT id, username, email, admin FROM users WHERE username = '{username}'"
+    try:
+        c.execute(query)
+        rows = c.fetchall()
+        users = [dict(row) for row in rows]
+        if len(users) > 1 or (users and "OR" in username.upper()):
+            return jsonify({"data": users, "flag": "flag{sql1_byp4ss_qu3ry_1nj3ct}"})
+        return jsonify({"data": users})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
