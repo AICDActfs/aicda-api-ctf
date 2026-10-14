@@ -1,0 +1,20 @@
+# ── Node / Next.js ──────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/submissions.json
+
+# ── Python / Flask ───────────────────────────────
+api/__pycache__/
+api/*.pyc
+api/*.pyo
+api/api.db
+api/.env
+api/venv/
+api/env/
+
+# ── General ──────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
