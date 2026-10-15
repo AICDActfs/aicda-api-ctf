@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 
 const FLAGS: Record<number, string> = {
   1: 'flag{d3bug_3ndp0int_3xp0s3d}',
@@ -15,29 +13,39 @@ const FLAGS: Record<number, string> = {
   10: 'flag{r4t3_l1m1t_n0n_3x1st3nt}',
 };
 
-const DB_FILE = path.join(process.cwd(), 'submissions.json');
-
 export async function POST(request: Request) {
   try {
-    const { flag, level, studentId } = await request.json();
-    const lvl = Number(level);
+    const body = await request.json();
+    const { flag, level } = body;
+    
+    const targetLevel = Number(level);
     const cleanFlag = typeof flag === 'string' ? flag.trim() : '';
 
-    if (FLAGS[lvl] && FLAGS[lvl] === cleanFlag) {
-      if (studentId) {
-        let data: any = {};
-        if (fs.existsSync(DB_FILE)) data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-        if (!data[studentId]) data[studentId] = { flags: [], timestamp: new Date().toISOString() };
-        if (!data[studentId].flags.includes(lvl)) {
-          data[studentId].flags.push(lvl);
-          data[studentId].lastUpdate = new Date().toISOString();
-        }
-        fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-      }
-      return NextResponse.json({ correct: true, level: lvl, message: 'FLAG ACCEPTED. SYSTEM COMPROMISED.' });
+    if (!targetLevel || !cleanFlag) {
+      return NextResponse.json({ 
+        correct: false, 
+        message: 'Level and Flag are required.' 
+      }, { status: 400 });
     }
-    return NextResponse.json({ correct: false, message: 'INVALID FLAG.' }, { status: 400 });
-  } catch (e) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+
+    const expectedFlag = FLAGS[targetLevel];
+
+    if (expectedFlag && expectedFlag === cleanFlag) {
+      return NextResponse.json({ 
+        correct: true, 
+        level: targetLevel, 
+        message: 'FLAG ACCEPTED. SYSTEM COMPROMISED.' 
+      });
+    }
+    
+    return NextResponse.json({ 
+      correct: false, 
+      message: 'ACCESS DENIED. INVALID FLAG.' 
+    }, { status: 400 });
+  } catch (error) {
+    return NextResponse.json({ 
+      correct: false, 
+      error: 'Invalid request format' 
+    }, { status: 400 });
   }
 }
