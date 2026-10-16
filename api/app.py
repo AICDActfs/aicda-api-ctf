@@ -256,5 +256,60 @@ def lookup_user_sqli():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+
+# ── Student Progress Tracking Database Table ──
+def init_tracking_db():
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS student_submissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_name TEXT NOT NULL,
+            level INTEGER NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(student_name, level)
+        )
+    """)
+    conn.commit()
+
+init_tracking_db()
+
+@app.route('/api/v1/record_submission', methods=['POST'])
+def record_submission():
+    data = request.get_json() or {}
+    student = data.get('student_name', '').strip()
+    level = data.get('level')
+    if not student or not level:
+        return jsonify({"error": "student_name and level required"}), 400
+    try:
+        conn = get_db()
+        c = conn.cursor()
+        c.execute("INSERT OR IGNORE INTO student_submissions (student_name, level) VALUES (?, ?)", (student, int(level)))
+        conn.commit()
+        return jsonify({"status": "recorded"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/v1/admin/students', methods=['GET'])
+def get_all_student_progress():
+    try:
+        conn = get_db()
+        c = conn.cursor()
+        c.execute("SELECT student_name, level, timestamp FROM student_submissions ORDER BY timestamp DESC")
+        rows = c.fetchall()
+        students_map = {}
+        for r in rows:
+            name = r['student_name']
+            lvl = r['level']
+            ts = r['timestamp']
+            if name not in students_map:
+                students_map[name] = {"name": name, "solvedCount": 0, "solvedFlags": [], "lastActive": ts}
+            if lvl not in students_map[name]["solvedFlags"]:
+                students_map[name]["solvedFlags"].append(lvl)
+                students_map[name]["solvedCount"] += 1
+        return jsonify({"students": list(students_map.values())}), 200
+    except Exception as e:
+        return jsonify({"students": []}), 200
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)

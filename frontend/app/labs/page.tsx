@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ProgressBar from '../../components/ProgressBar';
 import LabCard from '../../components/LabCard';
@@ -25,17 +24,6 @@ export default function LabsPage() {
   const [solvedFlags, setSolvedFlags] = useState<number[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Load existing flags from localStorage
-  const refreshSolved = () => {
-    const solved: number[] = [];
-    for (let i = 1; i <= 10; i++) {
-      if (localStorage.getItem(`flag_level_${i}`) === 'true') {
-        solved.push(i);
-      }
-    }
-    setSolvedFlags(solved);
-  };
-
   useEffect(() => {
     const token = localStorage.getItem('ctf_access_token');
     if (!token) {
@@ -44,13 +32,20 @@ export default function LabsPage() {
     }
     const name = localStorage.getItem('ctf_student_name') || 'Operative';
     setStudentName(name);
-    refreshSolved();
+
+    const solved: number[] = [];
+    for (let i = 1; i <= 10; i++) {
+      if (localStorage.getItem(`flag_level_${i}`) === 'true') {
+        solved.push(i);
+      }
+    }
+    setSolvedFlags(solved);
   }, [router]);
 
-  // Immediately triggers UI state update when modal returns success
   const handleFlagSuccess = (level: number) => {
-    localStorage.setItem(`flag_level_${level}`, 'true');
-    setSolvedFlags((prev) => (prev.includes(level) ? prev : [...prev, level]));
+    const numLevel = Number(level);
+    localStorage.setItem(`flag_level_${numLevel}`, 'true');
+    setSolvedFlags((prev) => (prev.includes(numLevel) ? prev : [...prev, numLevel]));
   };
 
   const handleResetProgress = () => {
@@ -129,7 +124,7 @@ export default function LabsPage() {
         {/* Challenge Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {LABS.map((lab) => {
-            const isSolved = solvedFlags.includes(lab.id);
+            const isSolved = solvedFlags.includes(Number(lab.id));
             return (
               <LabCard
                 key={lab.id}

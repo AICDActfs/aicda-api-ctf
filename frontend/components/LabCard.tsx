@@ -1,39 +1,62 @@
 'use client';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 interface LabCardProps {
   level: number;
-  title: string;
-  category: string;
-  points: number;
   slug: string;
-  solved: boolean;
+  title: string;
+  owasp: string;
+  points: number;
+  isSolved: boolean;
 }
 
-export default function LabCard({ level, title, category, points, slug, solved }: LabCardProps) {
+export default function LabCard({ level, slug, title, owasp, points, isSolved }: LabCardProps) {
   return (
-    <Link href={`/labs/${slug}`}>
-      <motion.div 
-        whileHover={{ scale: 1.02 }}
-        className={`glass-card p-6 h-full flex flex-col justify-between cursor-pointer transition-all duration-300 ${solved ? 'border-matrix-light bg-matrix-green/10' : ''}`}
-      >
-        <div>
-          <div className="flex justify-between items-start mb-4">
-            <span className="text-sm text-matrix-light">LEVEL {level}</span>
-            <span className={`px-2 py-1 text-xs font-bold ${solved ? 'bg-matrix-green text-black' : 'border border-matrix-green text-matrix-green'}`}>
-              {solved ? '✅ PWNED' : '⚡ ACTIVE'}
+    <div
+      className={`border rounded-lg p-5 font-mono flex flex-col justify-between transition-all duration-300 ${
+        isSolved
+          ? 'border-[#00ff41] bg-[#001a05] shadow-[0_0_20px_#00ff4133]'
+          : 'border-[#00ff4133] bg-[#050505] hover:border-[#00ff4188]'
+      }`}
+    >
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-bold text-[#00ffff88] tracking-widest">
+            LEVEL {level}
+          </span>
+          {isSolved ? (
+            <span className="px-2.5 py-0.5 rounded text-[11px] font-extrabold bg-[#00ff41] text-black shadow-[0_0_10px_#00ff41]">
+              ✓ PWNED
             </span>
-          </div>
-          <h3 className="text-xl font-bold mb-2 text-white">{title}</h3>
-          <p className="text-sm text-gray-400 mb-4">{category}</p>
+          ) : (
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold border border-[#ffaa0055] text-[#ffaa00] bg-[#ffaa0011]">
+              ⚡ ACTIVE
+            </span>
+          )}
         </div>
-        
-        <div className="flex justify-between items-end mt-4 pt-4 border-t border-matrix-green/30">
-          <span className="text-matrix-green font-mono">{points} PTS</span>
-          <span className="text-xs hover:underline">ACCESS TERMINAL →</span>
-        </div>
-      </motion.div>
-    </Link>
+
+        <h3 className="text-base font-bold text-white mb-2 leading-snug">
+          {title}
+        </h3>
+
+        <p className="text-[11px] text-gray-400 mb-4 line-clamp-1">
+          {owasp}
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-[#00ff4122] pt-3 mt-2">
+        <span className={`text-xs font-bold ${isSolved ? 'text-[#00ff41]' : 'text-[#00ffff]'}`}>
+          {points} PTS
+        </span>
+        <Link
+          href={`/labs/${slug}`}
+          className={`text-xs flex items-center gap-1 transition-colors ${
+            isSolved ? 'text-gray-400 hover:text-white' : 'text-[#00ff41] hover:text-[#00ffff]'
+          }`}
+        >
+          {isSolved ? 'REVIEW LAB →' : 'ACCESS TERMINAL →'}
+        </Link>
+      </div>
+    </div>
   );
 }

@@ -15,6 +15,13 @@ export default function AdminPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Check if admin is already logged in from previous refresh
+  useEffect(() => {
+    if (sessionStorage.getItem('aicda_admin_auth') === 'true') {
+      setAuthed(true);
+    }
+  }, []);
+
   const fetchStudents = async () => {
     setLoading(true);
     try {
@@ -39,11 +46,18 @@ export default function AdminPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (pass === 'AICDAadmin') {
+      sessionStorage.setItem('aicda_admin_auth', 'true');
       setAuthed(true);
       setErr('');
     } else {
       setErr('ACCESS DENIED: Invalid Admin Password');
     }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('aicda_admin_auth');
+    setAuthed(false);
+    setPass('');
   };
 
   const exportCSV = () => {
@@ -95,31 +109,37 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-[#00ff41] font-mono p-6">
+    <div className="min-h-screen bg-black text-[#00ff41] font-mono p-4 sm:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Header Bar */}
         <div className="flex flex-wrap items-center justify-between border-b border-[#00ff4133] pb-4 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#00ff41] tracking-wider">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#00ff41] tracking-wider">
               AICDA LIVE COMMAND CENTER
             </h1>
             <p className="text-xs text-[#00ffff88] mt-1">
               Active Operatives & Live Challenge Submissions (Auto-refreshes every 5s)
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3 flex-wrap">
             <button
               onClick={fetchStudents}
-              className="px-4 py-2 border border-[#00ff41] text-xs hover:bg-[#00ff4122]"
+              className="px-3 sm:px-4 py-2 border border-[#00ff41] text-xs hover:bg-[#00ff4122]"
             >
               {loading ? 'SYNCING...' : 'REFRESH'}
             </button>
             <button
               onClick={exportCSV}
-              className="px-4 py-2 bg-[#00ff41] text-black font-bold text-xs hover:bg-[#00ffff]"
+              className="px-3 sm:px-4 py-2 bg-[#00ff41] text-black font-bold text-xs hover:bg-[#00ffff]"
             >
               EXPORT CSV
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-3 sm:px-4 py-2 border border-red-500 text-red-400 text-xs hover:bg-red-500/20"
+            >
+              LOGOUT
             </button>
           </div>
         </div>

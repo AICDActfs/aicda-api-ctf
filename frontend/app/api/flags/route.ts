@@ -16,21 +16,28 @@ const FLAGS: Record<number, string> = {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { flag, level } = body;
+    const { flag, level, studentId } = body;
     
     const targetLevel = Number(level);
     const cleanFlag = typeof flag === 'string' ? flag.trim() : '';
 
     if (!targetLevel || !cleanFlag) {
-      return NextResponse.json({ 
-        correct: false, 
-        message: 'Level and Flag are required.' 
-      }, { status: 400 });
+      return NextResponse.json({ correct: false, message: 'Level and Flag required.' }, { status: 400 });
     }
 
     const expectedFlag = FLAGS[targetLevel];
 
     if (expectedFlag && expectedFlag === cleanFlag) {
+      // Record to Render SQLite database asynchronously
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://aicda-api-ctf.onrender.com';
+      if (studentId) {
+        fetch(`${apiUrl}/api/v1/record_submission`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ student_name: studentId, level: targetLevel }),
+        }).catch(() => {});
+      }
+
       return NextResponse.json({ 
         correct: true, 
         level: targetLevel, 
@@ -43,9 +50,6 @@ export async function POST(request: Request) {
       message: 'ACCESS DENIED. INVALID FLAG.' 
     }, { status: 400 });
   } catch (error) {
-    return NextResponse.json({ 
-      correct: false, 
-      error: 'Invalid request format' 
-    }, { status: 400 });
+    return NextResponse.json({ correct: false, error: 'Invalid request' }, { status: 400 });
   }
 }
