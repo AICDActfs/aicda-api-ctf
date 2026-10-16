@@ -25,6 +25,17 @@ export default function LabsPage() {
   const [solvedFlags, setSolvedFlags] = useState<number[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Load existing flags from localStorage
+  const refreshSolved = () => {
+    const solved: number[] = [];
+    for (let i = 1; i <= 10; i++) {
+      if (localStorage.getItem(`flag_level_${i}`) === 'true') {
+        solved.push(i);
+      }
+    }
+    setSolvedFlags(solved);
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('ctf_access_token');
     if (!token) {
@@ -33,22 +44,13 @@ export default function LabsPage() {
     }
     const name = localStorage.getItem('ctf_student_name') || 'Operative';
     setStudentName(name);
-
-    const solved: number[] = [];
-    for (let i = 1; i <= 10; i++) {
-      if (localStorage.getItem(`flag_level_${i}`)) {
-        solved.push(i);
-      }
-    }
-    setSolvedFlags(solved);
+    refreshSolved();
   }, [router]);
 
+  // Immediately triggers UI state update when modal returns success
   const handleFlagSuccess = (level: number) => {
-    if (!solvedFlags.includes(level)) {
-      const updated = [...solvedFlags, level];
-      setSolvedFlags(updated);
-      localStorage.setItem(`flag_level_${level}`, 'true');
-    }
+    localStorage.setItem(`flag_level_${level}`, 'true');
+    setSolvedFlags((prev) => (prev.includes(level) ? prev : [...prev, level]));
   };
 
   const handleResetProgress = () => {
@@ -106,7 +108,7 @@ export default function LabsPage() {
           <ProgressBar solvedCount={solvedFlags.length} total={10} />
         </div>
 
-        {/* All Solved Banner (with dismissible view so you can still browse labs) */}
+        {/* All Solved Banner */}
         {allSolved && (
           <div className="border-2 border-[#00ff41] bg-[#00220a] p-6 rounded-lg text-center shadow-[0_0_35px_#00ff4144] animate-pulse">
             <h2 className="text-xl sm:text-2xl font-extrabold text-[#00ff41] tracking-widest">
