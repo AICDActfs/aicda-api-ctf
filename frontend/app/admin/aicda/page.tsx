@@ -15,7 +15,6 @@ export default function AdminPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Check if admin is already logged in from previous refresh
   useEffect(() => {
     if (sessionStorage.getItem('aicda_admin_auth') === 'true') {
       setAuthed(true);
@@ -27,7 +26,16 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin/students');
       const data = await res.json();
-      setStudents(data.students || []);
+      
+      // Sort: Highest solved count first; if tied, earliest lastActive timestamp first
+      const sorted = (data.students || []).sort((a: Student, b: Student) => {
+        if (b.solvedCount !== a.solvedCount) {
+          return b.solvedCount - a.solvedCount;
+        }
+        return new Date(a.lastActive).getTime() - new Date(b.lastActive).getTime();
+      });
+
+      setStudents(sorted);
     } catch {
       // ignore
     } finally {
@@ -38,7 +46,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (authed) {
       fetchStudents();
-      const interval = setInterval(fetchStudents, 5000);
+      const interval = setInterval(fetchStudents, 4000);
       return () => clearInterval(interval);
     }
   }, [authed]);
@@ -61,15 +69,15 @@ export default function AdminPage() {
   };
 
   const exportCSV = () => {
-    const headers = 'Student,Solved Count,Solved Levels,Last Active\n';
-    const rows = students.map(s => 
-      `"${s.name}","${s.solvedCount}/10","${s.solvedFlags.join(';') || 'None'}","${s.lastActive || 'N/A'}"`
+    const headers = 'Rank,Operative Name,Solved Count,Score (PTS),Solved Levels,Completion Timestamp\n';
+    const rows = students.map((s, index) => 
+      `"${index + 1}","${s.name}","${s.solvedCount}/10","${s.solvedCount * 100}","${s.solvedFlags.join(';') || 'None'}","${s.lastActive || 'N/A'}"`
     ).join('\n');
     const blob = new Blob([headers + rows], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `aicda_ctf_report_${Date.now()}.csv`;
+    a.download = `aicda_ctf_leaderboard_${Date.now()}.csv`;
     a.click();
   };
 
@@ -116,10 +124,10 @@ export default function AdminPage() {
         <div className="flex flex-wrap items-center justify-between border-b border-[#00ff4133] pb-4 gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#00ff41] tracking-wider">
-              AICDA LIVE COMMAND CENTER
+              AICDA LIVE COMMAND CENTER & LEADERBOARD
             </h1>
             <p className="text-xs text-[#00ffff88] mt-1">
-              Active Operatives & Live Challenge Submissions (Auto-refreshes every 5s)
+              Real-Time Operative Rankings & Submissions (Auto-refreshes every 4s)
             </p>
           </div>
           <div className="flex gap-2 sm:gap-3 flex-wrap">
@@ -157,35 +165,44 @@ export default function AdminPage() {
             </p>
           </div>
           <div className="border border-[#00ff4155] bg-[#050505] p-4 rounded">
-            <span className="text-xs text-[#00ffff88]">ALL LABS COMPLETED</span>
+            <span className="text-xs text-[#00ffff88]">ALL LABS COMPLETED (10/10)</span>
             <p className="text-3xl font-bold text-[#ff0055] mt-1">
               {students.filter(s => s.solvedCount === 10).length}
             </p>
           </div>
         </div>
 
-        {/* Data Table */}
+        {/* Ranked Leaderboard Table */}
         <div className="border border-[#00ff4155] bg-[#050505] rounded overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-[#00ff4133] bg-[#0a1a0a] text-[#00ffff]">
+                <th className="p-3 w-16 text-center">RANK</th>
                 <th className="p-3">OPERATIVE NAME</th>
+                <th className="p-3">SCORE</th>
                 <th className="p-3">PROGRESS</th>
-                <th className="p-3">SOLVED LEVELS (1-10)</th>
-                <th className="p-3">LAST ACTIVITY</th>
+                <th className="p-3">SOLVED LEVELS</th>
+                <th className="p-3">LAST SOLVED TIME</th>
               </tr>
             </thead>
             <tbody>
               {students.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-6 text-center text-gray-500">
-                    No student submissions recorded yet. Submissions will appear live as flags are turned in.
+                  <td colSpan={6} className="p-8 text-center text-gray-500">
+                    No student submissions recorded yet. Submissions appear live as flags are turned in.
                   </td>
                 </tr>
               ) : (
                 students.map((st, i) => (
-                  <tr key={i} className="border-b border-[#00ff4122] hover:bg-[#00ff410d]">
-                    <td className="p-3 font-bold text-white">{st.name}</td>
+                  <tr key={i} className={`border-b border-[#00ff4122] hover:bg-[#00ff410d] ${i === 0 ? 'bg-[#00ff4108]' : ''}`}>
+                    <td className="p-3 text-center font-bold">
+                      {i === 0 && <span className="text-yellow-400 text-sm">🥇 #1</span>}
+                      {i === 1 && <span className="text-gray-300 text-sm">🥈 #2</span>}
+                      {i === 2 && <span className="text-amber-600 text-sm">🥉 #3</span>}
+                      {i > 2 && <span className="text-gray-500 font-mono">#{i + 1}</span>}
+                    </td>
+                    <td className="p-3 font-bold text-white text-sm">{st.name}</td>
+                    <td className="p-3 font-bold text-[#00ffff]">{st.solvedCount * 100} PTS</td>
                     <td className="p-3">
                       <span className="font-bold text-[#00ff41]">{st.solvedCount}/10</span>
                       <div className="w-24 bg-gray-800 h-1.5 mt-1 rounded overflow-hidden">
@@ -202,7 +219,7 @@ export default function AdminPage() {
                             key={lvl}
                             className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
                               st.solvedFlags.includes(lvl)
-                                ? 'bg-[#00ff41] text-black'
+                                ? 'bg-[#00ff41] text-black font-extrabold'
                                 : 'bg-[#1a1a1a] text-gray-600'
                             }`}
                           >
@@ -212,7 +229,7 @@ export default function AdminPage() {
                       </div>
                     </td>
                     <td className="p-3 text-gray-400">
-                      {st.lastActive ? new Date(st.lastActive).toLocaleTimeString() : 'N/A'}
+                      {st.lastActive ? new Date(st.lastActive).toLocaleString() : 'N/A'}
                     </td>
                   </tr>
                 ))

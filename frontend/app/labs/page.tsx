@@ -110,7 +110,7 @@ export default function LabsPage() {
               🎉 ALL MISSION MODULES COMPROMISED!
             </h2>
             <p className="text-xs sm:text-sm text-[#00ffff] mt-1">
-              Outstanding work, Operative. All 10 challenge flags verified.
+              Outstanding work, {studentName}. All 10 challenge flags verified.
             </p>
             <button
               onClick={handleResetProgress}
