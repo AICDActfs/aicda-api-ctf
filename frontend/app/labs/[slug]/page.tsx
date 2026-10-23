@@ -188,6 +188,25 @@ export default function SubLabPage() {
           </h1>
         </div>
 
+        
+        {/* Target API Host Banner */}
+        <div className="border border-[#00ffff44] bg-[#001111] p-3 sm:p-4 rounded-lg flex flex-wrap items-center justify-between gap-3 shadow-[0_0_15px_#00ffff15]">
+          <div>
+            <span className="text-[10px] sm:text-xs text-[#00ffff] font-bold block uppercase tracking-wider">
+              TARGET API ENDPOINT
+            </span>
+            <code className="text-xs sm:text-sm text-[#00ff41] font-mono break-all">
+              https://aicda-api-ctf.onrender.com
+            </code>
+          </div>
+          <button
+            onClick={() => handleCopy('https://aicda-api-ctf.onrender.com', 999)}
+            className="px-3 py-1 text-xs border border-[#00ffff55] text-[#00ffff] rounded hover:bg-[#00ffff22] transition-colors"
+          >
+            {copiedIndex === 999 ? 'COPIED!' : 'COPY TARGET'}
+          </button>
+        </div>
+
         {/* Tabs - Fully Mobile Responsive */}
         <div className="flex border-b border-[#00ff4133] overflow-x-auto gap-1 sm:gap-2 pb-1 scrollbar-none">
           {(['theory', 'methodology', 'objective'] as const).map(t => (
